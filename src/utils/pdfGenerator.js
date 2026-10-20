@@ -17,7 +17,7 @@ export const exportToPDF = ({
   salesUSD,
   expensesUSD
 }) => {
-  // تنسيق التاريخ المختار إلى نص عربي
+  // 1. تنسيق التاريخ المختار إلى نص عربي
   const formattedDate = selectedDate
     ? new Date(selectedDate).toLocaleDateString('ar-EG', {
         weekday: 'long',
@@ -32,8 +32,7 @@ export const exportToPDF = ({
         day: 'numeric'
       });
 
-  const printWindow = window.open('', '_blank');
-
+  // 2. تجهيز محتوى الـ HTML المخصص للطباعة
   const htmlContent = `
     <!DOCTYPE html>
     <html lang="ar" dir="rtl">
@@ -192,16 +191,32 @@ export const exportToPDF = ({
       <div class="footer">
         تم تطويره من قبل منير الحمصي 2026
       </div>
-
-      <script>
-        window.onload = function() {
-          window.print();
-        };
-      </script>
     </body>
     </html>
   `;
 
-  printWindow.document.write(htmlContent);
-  printWindow.document.close();
+  // 3. إنشاء إطار خفي (Iframe) لمنع حظر النافذة المنبثقة على المواقع المرفوعة
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(htmlContent);
+  doc.close();
+
+  // 4. الانتظار حتى اكتمال تحميل الخطوط والمكونات ثم استدعاء نافذة الطباعة
+  iframe.contentWindow.focus();
+  setTimeout(() => {
+    iframe.contentWindow.print();
+    // إزالة الإطار الخفي بعد إغلاق نافذة الطباعة
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 1000);
+  }, 500);
 };
