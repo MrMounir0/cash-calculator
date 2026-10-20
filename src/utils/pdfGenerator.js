@@ -1,5 +1,5 @@
 export const exportToPDF = ({
-  exchangeRate,
+  selectedDate,
   openSYPVal,
   totalSalesSYP,
   totalExpensesSYP,
@@ -15,17 +15,23 @@ export const exportToPDF = ({
   actUSDVal,
   diffUSD,
   salesUSD,
-  expensesUSD,
-  grandTotalSYP
+  expensesUSD
 }) => {
-  const dateStr = new Date().toLocaleDateString('ar-EG', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  // تنسيق التاريخ المختار إلى نص عربي
+  const formattedDate = selectedDate
+    ? new Date(selectedDate).toLocaleDateString('ar-EG', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    : new Date().toLocaleDateString('ar-EG', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
 
-  // إنشاء نافذة جديدة منسقة للطباعة أو الحفظ كـ PDF
   const printWindow = window.open('', '_blank');
 
   const htmlContent = `
@@ -58,8 +64,9 @@ export const exportToPDF = ({
         }
         .header p {
           margin: 5px 0 0;
-          font-size: 12px;
-          color: #64748b;
+          font-size: 13px;
+          color: #475569;
+          font-weight: 600;
         }
         table {
           width: 100%;
@@ -82,16 +89,6 @@ export const exportToPDF = ({
           margin: 15px 0 8px;
           color: #0f172a;
         }
-        .summary-box {
-          background-color: #f8fafc;
-          border: 1px solid #e2e8f0;
-          padding: 12px;
-          border-radius: 8px;
-          text-align: center;
-          font-weight: 800;
-          font-size: 14px;
-          margin-top: 15px;
-        }
         .footer {
           margin-top: 30px;
           text-align: center;
@@ -108,7 +105,7 @@ export const exportToPDF = ({
     <body>
       <div class="header">
         <h1>تقرير حاسبة الصندوق اليومية (ليرة / دولار)</h1>
-        <p>التاريخ: ${dateStr} | سعر الصرف المعتمد: 1$ = ${parseFloat(exchangeRate || 0).toLocaleString()} ل.س</p>
+        <p>التاريخ: ${formattedDate}</p>
       </div>
 
       <!-- ملخص الصندوقين -->
@@ -191,11 +188,6 @@ export const exportToPDF = ({
           `).join('')}
         </tbody>
       </table>
-
-      <!-- التقييم الشامل -->
-      <div class="summary-box">
-        إجمالي القيمة الكلية المتوقعة المعادلة بالليرة: ${grandTotalSYP.toLocaleString()} ل.س
-      </div>
 
       <div class="footer">
         تم تطويره من قبل منير الحمصي 2026

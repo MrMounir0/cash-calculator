@@ -1,7 +1,7 @@
 import React from 'react';
-import { Calculator, RefreshCw, FileText } from 'lucide-react';
+import { Calculator, FileText, Calendar } from 'lucide-react';
 
-export default function Header({ exchangeRate, setExchangeRate, onExportPDF }) {
+export default function Header({ selectedDate, setSelectedDate, onExportPDF }) {
   return (
     <header className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl py-6 px-4">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
@@ -11,22 +11,20 @@ export default function Header({ exchangeRate, setExchangeRate, onExportPDF }) {
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-black">حاسبة صندوق (ليرة / دولار)</h1>
-            <p className="text-indigo-200 text-xs mt-1">حساب رصيد المتوقع والمطابقة الفورية بالليرة والدولار</p>
+            <p className="text-indigo-200 text-xs mt-1">حساب الرصيد المتوقع والمطابقة الفورية بالليرة والدولار</p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          {/* حقل اختيار وتعديل التاريخ */}
           <div className="flex items-center gap-2 bg-slate-800/90 border border-slate-700 px-3 py-2 rounded-xl">
-            <RefreshCw className="w-4 h-4 text-amber-400" />
-            <span className="text-xs text-slate-300 font-semibold">1$ =</span>
+            <Calendar className="w-4 h-4 text-indigo-400" />
             <input
-              type="number"
-              value={exchangeRate}
-              onChange={(e) => setExchangeRate(e.target.value)}
-              className="w-24 bg-slate-900 border border-slate-700 text-amber-400 text-center font-bold text-sm rounded-lg p-1 outline-none focus:border-amber-400"
-              placeholder="سعر الصرف"
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="bg-transparent text-slate-200 text-xs md:text-sm font-semibold outline-none cursor-pointer"
             />
-            <span className="text-xs text-slate-300">ل.س</span>
           </div>
 
           <button

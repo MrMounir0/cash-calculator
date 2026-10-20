@@ -1,23 +1,27 @@
 import React, { useState, useMemo } from 'react';
 import Header from './components/Header';
 import CurrencySection from './components/CurrencySection';
-import GrandSummary from './components/GrandSummary';
 import Footer from './components/Footer';
 import { exportToPDF } from './utils/pdfGenerator';
 
 export default function App() {
-  const [exchangeRate, setExchangeRate] = useState('15000');
+  // ضبط تاريخ اليوم الافتراضي بصيغة YYYY-MM-DD
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState(todayStr);
 
+  // حالة الليرة السورية
   const [openingSYP, setOpeningSYP] = useState('');
   const [actualSYP, setActualSYP] = useState('');
   const [salesSYP, setSalesSYP] = useState([{ id: 1, amount: '', note: '' }]);
   const [expensesSYP, setExpensesSYP] = useState([{ id: 1, amount: '', note: '' }]);
 
+  // حالة الدولار الأمريكي
   const [openingUSD, setOpeningUSD] = useState('');
   const [actualUSD, setActualUSD] = useState('');
   const [salesUSD, setSalesUSD] = useState([{ id: 1, amount: '', note: '' }]);
   const [expensesUSD, setExpensesUSD] = useState([{ id: 1, amount: '', note: '' }]);
 
+  // حسابات الليرة السورية
   const totalSalesSYP = useMemo(() => salesSYP.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0), [salesSYP]);
   const totalExpensesSYP = useMemo(() => expensesSYP.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0), [expensesSYP]);
   
@@ -26,6 +30,7 @@ export default function App() {
   const expectedSYP = openSYPVal + totalSalesSYP - totalExpensesSYP;
   const diffSYP = actSYPVal - expectedSYP;
 
+  // حسابات الدولار الأمريكي
   const totalSalesUSD = useMemo(() => salesUSD.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0), [salesUSD]);
   const totalExpensesUSD = useMemo(() => expensesUSD.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0), [expensesUSD]);
   
@@ -33,9 +38,6 @@ export default function App() {
   const actUSDVal = parseFloat(actualUSD) || 0;
   const expectedUSD = openUSDVal + totalSalesUSD - totalExpensesUSD;
   const diffUSD = actUSDVal - expectedUSD;
-
-  const rateVal = parseFloat(exchangeRate) || 1;
-  const grandTotalSYP = expectedSYP + (expectedUSD * rateVal);
 
   const handleAddRow = (type, currency) => {
     const newItem = { id: Date.now(), amount: '', note: '' };
@@ -71,22 +73,22 @@ export default function App() {
 
   const handlePDFExport = () => {
     exportToPDF({
-      exchangeRate,
+      selectedDate,
       openSYPVal, totalSalesSYP, totalExpensesSYP, expectedSYP, actSYPVal, diffSYP, salesSYP, expensesSYP,
-      openUSDVal, totalSalesUSD, totalExpensesUSD, expectedUSD, actUSDVal, diffUSD, salesUSD, expensesUSD,
-      grandTotalSYP
+      openUSDVal, totalSalesUSD, totalExpensesUSD, expectedUSD, actUSDVal, diffUSD, salesUSD, expensesUSD
     });
   };
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-slate-100 text-slate-800">
       <Header 
-        exchangeRate={exchangeRate} 
-        setExchangeRate={setExchangeRate} 
+        selectedDate={selectedDate} 
+        setSelectedDate={setSelectedDate} 
         onExportPDF={handlePDFExport} 
       />
 
       <main className="max-w-7xl mx-auto px-4 w-full flex-grow py-8 space-y-8">
+        {/* صندوق الليرة السورية */}
         <CurrencySection
           title="صندوق الليرة السورية (SYP)"
           badgeText="العملة المحلية"
@@ -108,6 +110,7 @@ export default function App() {
           onUpdateRow={(type, id, field, value) => handleUpdateRow(type, 'SYP', id, field, value)}
         />
 
+        {/* صندوق الدولار الأمريكي */}
         <CurrencySection
           title="صندوق الدولار الأمريكي (USD)"
           badgeText="العملة الأجنبية"
@@ -127,13 +130,6 @@ export default function App() {
           onAddRow={(type) => handleAddRow(type, 'USD')}
           onRemoveRow={(type, id) => handleRemoveRow(type, 'USD', id)}
           onUpdateRow={(type, id, field, value) => handleUpdateRow(type, 'USD', id, field, value)}
-        />
-
-        <GrandSummary 
-          grandTotalSYP={grandTotalSYP}
-          expectedSYP={expectedSYP}
-          expectedUSD={expectedUSD}
-          rateVal={rateVal}
         />
       </main>
 
