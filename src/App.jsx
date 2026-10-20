@@ -1,25 +1,55 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import CurrencySection from './components/CurrencySection';
 import Footer from './components/Footer';
 import { exportToPDF } from './utils/pdfGenerator';
+import { Trash2 } from 'lucide-react';
 
 export default function App() {
-  // ضبط تاريخ اليوم الافتراضي بصيغة YYYY-MM-DD
   const todayStr = new Date().toISOString().split('T')[0];
-  const [selectedDate, setSelectedDate] = useState(todayStr);
 
-  // حالة الليرة السورية
-  const [openingSYP, setOpeningSYP] = useState('');
-  const [actualSYP, setActualSYP] = useState('');
-  const [salesSYP, setSalesSYP] = useState([{ id: 1, amount: '', note: '' }]);
-  const [expensesSYP, setExpensesSYP] = useState([{ id: 1, amount: '', note: '' }]);
+  // 1. استرجاع البيانات المخزنة من localStorage أو استخدام القيم الافتراضية
+  const [selectedDate, setSelectedDate] = useState(() => {
+    return localStorage.getItem('cash_date') || todayStr;
+  });
 
-  // حالة الدولار الأمريكي
-  const [openingUSD, setOpeningUSD] = useState('');
-  const [actualUSD, setActualUSD] = useState('');
-  const [salesUSD, setSalesUSD] = useState([{ id: 1, amount: '', note: '' }]);
-  const [expensesUSD, setExpensesUSD] = useState([{ id: 1, amount: '', note: '' }]);
+  // الليرة السورية
+  const [openingSYP, setOpeningSYP] = useState(() => localStorage.getItem('cash_openingSYP') || '');
+  const [actualSYP, setActualSYP] = useState(() => localStorage.getItem('cash_actualSYP') || '');
+  const [salesSYP, setSalesSYP] = useState(() => {
+    const saved = localStorage.getItem('cash_salesSYP');
+    return saved ? JSON.parse(saved) : [{ id: 1, amount: '', note: '' }];
+  });
+  const [expensesSYP, setExpensesSYP] = useState(() => {
+    const saved = localStorage.getItem('cash_expensesSYP');
+    return saved ? JSON.parse(saved) : [{ id: 1, amount: '', note: '' }];
+  });
+
+  // الدولار الأمريكي
+  const [openingUSD, setOpeningUSD] = useState(() => localStorage.getItem('cash_openingUSD') || '');
+  const [actualUSD, setActualUSD] = useState(() => localStorage.getItem('cash_actualUSD') || '');
+  const [salesUSD, setSalesUSD] = useState(() => {
+    const saved = localStorage.getItem('cash_salesUSD');
+    return saved ? JSON.parse(saved) : [{ id: 1, amount: '', note: '' }];
+  });
+  const [expensesUSD, setExpensesUSD] = useState(() => {
+    const saved = localStorage.getItem('cash_expensesUSD');
+    return saved ? JSON.parse(saved) : [{ id: 1, amount: '', note: '' }];
+  });
+
+  // 2. الحفظ التلقائي في localStorage عند حدوث أي تغيير
+  useEffect(() => {
+    localStorage.setItem('cash_date', selectedDate);
+    localStorage.setItem('cash_openingSYP', openingSYP);
+    localStorage.setItem('cash_actualSYP', actualSYP);
+    localStorage.setItem('cash_salesSYP', JSON.stringify(salesSYP));
+    localStorage.setItem('cash_expensesSYP', JSON.stringify(expensesSYP));
+
+    localStorage.setItem('cash_openingUSD', openingUSD);
+    localStorage.setItem('cash_actualUSD', actualUSD);
+    localStorage.setItem('cash_salesUSD', JSON.stringify(salesUSD));
+    localStorage.setItem('cash_expensesUSD', JSON.stringify(expensesUSD));
+  }, [selectedDate, openingSYP, actualSYP, salesSYP, expensesSYP, openingUSD, actualUSD, salesUSD, expensesUSD]);
 
   // حسابات الليرة السورية
   const totalSalesSYP = useMemo(() => salesSYP.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0), [salesSYP]);
@@ -68,6 +98,23 @@ export default function App() {
     } else {
       if (type === 'sales') setSalesUSD(update(salesUSD));
       else setExpensesUSD(update(expensesUSD));
+    }
+  };
+
+  // دالة إفراغ المحتويات ومسح التخزين
+  const handleClearAll = () => {
+    if (window.confirm('هل أنت تأكد من رغبتك في إفراغ جميع المحتويات والبيانات المدخلة؟')) {
+      localStorage.clear();
+      setSelectedDate(todayStr);
+      setOpeningSYP('');
+      setActualSYP('');
+      setSalesSYP([{ id: 1, amount: '', note: '' }]);
+      setExpensesSYP([{ id: 1, amount: '', note: '' }]);
+
+      setOpeningUSD('');
+      setActualUSD('');
+      setSalesUSD([{ id: 1, amount: '', note: '' }]);
+      setExpensesUSD([{ id: 1, amount: '', note: '' }]);
     }
   };
 
@@ -131,6 +178,17 @@ export default function App() {
           onRemoveRow={(type, id) => handleRemoveRow(type, 'USD', id)}
           onUpdateRow={(type, id, field, value) => handleUpdateRow(type, 'USD', id, field, value)}
         />
+
+        {/* زر إفراغ المحتويات بالأحمر في أسفل الصفحة */}
+        <div className="flex justify-center pt-4">
+          <button
+            onClick={handleClearAll}
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition active:scale-95 text-sm md:text-base"
+          >
+            <Trash2 className="w-5 h-5" />
+            إفراغ المحتويات
+          </button>
+        </div>
       </main>
 
       <Footer />
